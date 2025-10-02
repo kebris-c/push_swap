@@ -24,11 +24,10 @@
 
 # 📚 Basic project variables
 #
-PROJECT		= so_long
+PROJECT		= push_swap
 P_BONUS		= $(PROJECT)_bonus
 NAME		= $(PROJECT).a
 N_BONUS		= $(P_BONUS).a
-MLBX		= minilibx-linux/
 
 # 🔧 Compiler and flags
 #
