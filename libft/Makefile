@@ -6,7 +6,7 @@
 #    By: kebris-c <kebris-c@student.42madrid.c      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/09/08 13:07:54 by kebris-c          #+#    #+#              #
-#    Updated: 2025/10/05 13:45:03 by kebris-c         ###   ########.fr        #
+#    Updated: 2025/09/08 16:08:16 by kebris-c         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,21 +19,18 @@
 	@echo "what the hell they do, then run: make help"
 	@echo ""
 
-.PHONY: all bonus clean fclean re re_bonus setup help rigor rigor_bonus norm \
-	leaks leaks_bonus
+.PHONY: all clean fclean re
 
 # 📚 Basic project variables
 #
-PROJECT		= push_swap
-P_BONUS		= $(PROJECT)_bonus
-NAME		= $(PROJECT).a
-N_BONUS		= $(P_BONUS).a
+NAME	= $(notdir $(shell pwd)).a
+PROJECT	= $(notdir $(shell pwd))
 
 # 🔧 Compiler and flags
 #
-CC			= cc
-CFLAGS		= -Wall -Wextra -Werror
-CEXTRAFLAGS	= \
+CC		= cc
+FLAGS	= -Wall -Wextra -Werror
+E_FLAGS	= \
 			$(CFLAGS) \
 			-MMD \
 			-MP \
@@ -75,21 +72,21 @@ LS		= ls -l
 # 📂 Fast path variables / dirs
 #
 SRC_DIR		= src/
-INCL_DIR	= include/
+INCLUDE_DIR	= include/
 OBJS_DIR	= objs/
 DEPS_DIR	= deps/
 # If there is bonus
 #
 BONUS_DIR		= bonus/
 B_SRC_DIR		= bonus/src/
-B_INCL_DIR		= bonus/include/
+B_INCLUDE_DIR	= bonus/include/
 B_OBJS_DIR		= bonus/objs/
 B_DEPS_DIR		= bonus/deps/
 # If there is Libft
 #
 LIB_DIR			= libft/
 L_SRC_DIR		= libft/src/
-L_INCL_DIR		= libft/include/
+L_INCLUDE_DIR	= libft/include/
 L_OBJS_DIR		= libft/objs/
 L_DEPS_DIR		= libft/deps/
 
@@ -112,9 +109,9 @@ HAS_LIBFT = $(shell \
     else \
         echo no; \
     fi)
-HEADERS = -I$(INCL_DIR)
+HEADERS = -I$(INCLUDE_DIR)
 ifeq ($(HAS_LIBFT),yes)
-    HEADERS += -I$(L_INCL_DIR)
+    HEADERS += -I$(L_INCLUDE_DIR)
 endif
 
 # ------------------------------------------------ #
@@ -124,9 +121,9 @@ endif
 define COMPILE_PROJECT
 	@if $(NORM) $(SRC_DIR) 2>/dev/null; then \
 		if [ -d $(LIB_DIR) ]; then \
-			$(CC) $(1) $(2) $(HEADERS) -L$(LIB_DIR) -lft -o $(3); \
+			$(CC) $(1) $(2) $(HEADERS) -L$(LIB_DIR) -lft -o $(PROJECT); \
 		else \
-			$(CC) $(1) $(2) $(HEADERS) -o $(3); \
+			$(CC) $(1) $(2) $(HEADERS) -o $(PROJECT); \
 		fi; \
 	else \
 		exit 1; \
@@ -138,22 +135,19 @@ endef
 # ------------------------------------------------ #
 
 setup:
-	@mkdir -p $(SRC_DIR) $(INCL_DIR) $(OBJS_DIR) $(DEPS_DIR)
+	@mkdir -p $(SRC_DIR) $(INCLUDE_DIR) $(OBJS_DIR) $(DEPS_DIR)
 	@if [ -d $(BONUS_DIR) ]; then \
-		mkdir -p $(B_SRC_DIR) $(B_INCL_DIR) $(B_OBJS_DIR) $(B_DEPS_DIR); \
+		mkdir -p $(B_SRC_DIR) $(B_INCLUDE_DIR) $(B_OBJS_DIR) $(B_DEPS_DIR); \
 		find . -maxdepth 1 -name "*_bonus.c" ! -path "./$(B_SRC_DIR)*" -exec mv -n {} $(B_SRC_DIR)/ \;; \
-		find . -maxdepth 1 -name "*_bonus.h" ! -path "./$(B_INCL_DIR)*" -exec mv -n {} $(B_INCL_DIR)/ \;; \
+		find . -maxdepth 1 -name "*_bonus.h" ! -path "./$(B_INCLUDE_DIR)*" -exec mv -n {} $(B_INCLUDE_DIR)/ \;; \
 		find . -maxdepth 1 -name "*_bonus.o" ! -path "./$(B_OBJS_DIR)*" -exec mv -n {} $(B_OBJS_DIR)/ \;; \
 		find . -maxdepth 1 -name "*_bonus.d" ! -path "./$(B_DEPS_DIR)*" -exec mv -n {} $(B_DEPS_DIR)/ \;; \
 	fi
 	@find . -maxdepth 1 -name "*.c" ! -path "./$(SRC_DIR)*" -exec mv -n {} $(SRC_DIR)/ \;
-	@find . -maxdepth 1 -name "*.h" ! -path "./$(INCL_DIR)*" -exec mv -n {} $(INCL_DIR)/ \;
+	@find . -maxdepth 1 -name "*.h" ! -path "./$(INCLUDE_DIR)*" -exec mv -n {} $(INCLUDE_DIR)/ \;
 	@find . -maxdepth 1 -name "*.o" ! -path "./$(OBJS_DIR)*" -exec mv -n {} $(OBJS_DIR)/ \;
 	@find . -maxdepth 1 -name "*.d" ! -path "./$(DEPS_DIR)*" -exec mv -n {} $(DEPS_DIR)/ \;
 
-# ------------------------------------------------ #
-#  Help rule: Be user-friendly			           #
-# ------------------------------------------------ #
 # Make sure this rule is updated with correct data
 #
 help:
@@ -165,11 +159,10 @@ help:
 	@echo ""
 	@echo "📦 Basic build:"
 	@echo "  all           -> setup, build $(NAME). Default option used by make"
-	@echo "  bonus         -> build $(N_BONUS) with bonus sources"
+	@echo "  bonus         -> build $(NAME) with bonus sources"
 	@echo "  clean         -> remove object and dependency files"
-	@echo "  fclean        -> clean + remove $(NAME) or $(N_BONUS), objs dir, deps dir and executable"
+	@echo "  fclean        -> clean + remove $(NAME) and executable"
 	@echo "  re            -> fclean + all"
-	@echo "  re_bonus      -> fclean + bonus"
 	@echo ""
 	@echo "⚡ Project compilation:"
 	@echo "  $(PROJECT)			-> compile main project"
@@ -177,11 +170,13 @@ help:
 	@echo "  rigor				-> compile main project with rigurous flags"
 	@echo "  bonus_rigor		-> compile bonus project with rigurous flags"
 	@echo ""
-	@echo "🛠 Norminette, leaks & extra features:"
-	@echo "  norm          -> run norminette on project"
+	@echo "🛠 Norminette & leaks:"
+	@echo "  norm         -> run norminette on project"
 	@echo "  leaks         -> run valgrind on project"
-	@echo "  leaks_bonus   -> run valgrind on bonus project"
-	@echo "  setup         -> Normalize project dirs setup"
+	@echo ""
+	@echo "📁 Git ignore automation:"
+	@echo "  ignore        -> generate .gitignore (keeps sources, ignores binaries and deps)"
+	@echo "  ignoremake    -> modify .gitignore to ignore Makefile too"
 	@echo ""
 	@echo "==============================================="
 	@echo ""
@@ -190,7 +185,7 @@ help:
 #   BASIC RULES / LIBRARY COMMANDS               #
 #------------------------------------------------#
 
-all: setup $(NAME) $(PROJECT)
+all: setup $(NAME)
 
 $(NAME): $(OBJS)
 	@$(AR) $(NAME) $(OBJS)
@@ -201,49 +196,44 @@ $(OBJS_DIR)%.o: $(SRC_DIR)%.c
 	@if [ -d $(LIB_DIR) ]; then \
 		$(MAKE) -C $(LIB_DIR); \
 	fi
-	@$(CC) $(CFLAGS) -MMD -MP $(HEADERS) -c $< -o $@
+	@$(CC) $(FLAGS) -MMD -MP $(HEADERS) -c $< -o $@
 	@mv $(OBJS_DIR)$*.d $(DEPS_DIR)
 
-bonus: setup $(N_BONUS) $(P_BONUS)
-
-$(N_BONUS): $(B_OBJS)
-	@$(AR) $(N_BONUS) $(B_OBJS)
-	@echo "✅ $(N_BONUS) build with bonus sources";
+bonus: $(B_OBJS)
+	@$(AR) $(NAME) $(B_OBJS)
+	@echo "✅ $(NAME) build with bonus sources"; \
 
 $(B_OBJS_DIR)%.o: $(B_SRC_DIR)%.c
 	@echo "🔨 Compiling bonus $<..."
 	@if [ -d $(LIB_DIR) ]; then \
 		$(MAKE) -C $(LIB_DIR); \
 	fi
-	@$(CC) $(CFLAGS) -MMD -MP $(HEADERS) -c $< -o $@
+	@$(CC) $(FLAGS) $(HEADERS) -c $< -o $@
 	@mv $(B_OBJS_DIR)$*.d $(B_DEPS_DIR)
 
 clean:
 	@$(RM) $(OBJS) $(B_OBJS) $(DEPS) $(B_DEPS)
 
 fclean: clean
-	@$(RM) $(NAME) $(N_BONUS) $(PROJECT) $(P_BONUS) $(OBJS_DIR) \
-		$(DEPS_DIR) $(B_OBJS_DIR) $(B_DEPS_DIR)
+	@$(RM) $(NAME) $(PROJECT)
 
 re: fclean all
-
-re_bonus: fclean bonus
 
 #------------------------------------------------#
 #   PROJECT COMPILATION                          #
 #------------------------------------------------#
 
 $(PROJECT): $(OBJS)
-	$(call COMPILE_PROJECT,$(CFLAGS),$(OBJS),$(PROJECT))
+	$(call COMPILE_PROJECT,$(E_FLAGS),$(OBJS))
 
-$(PROJECT)_bonus: $(B_OBJS)
-	$(call COMPILE_PROJECT,$(CFLAGS),$(B_OBJS),$(P_BONUS))
+bonus_$(PROJECT): $(B_OBJS)
+	$(call COMPILE_PROJECT,$(E_FLAGS),$(B_OBJS))
 
 rigor: $(OBJS)
-	$(call COMPILE_PROJECT,$(CEXTRAFLAGS),$(OBJS),$(BONUS))
+	$(call COMPILE_PROJECT,$(E_FLAGS),$(OBJS))
     
-rigor_bonus: $(B_OBJS)
-	$(call COMPILE_PROJECT,$(CEXTRAFLAGS),$(B_OBJS),$(P_BONUS))
+bonus_rigor: $(B_OBJS)
+	$(call COMPILE_PROJECT,$(E_FLAGS),$(B_OBJS))
 
 #------------------------------------------------#
 #   NORMINETTE & LEAKS                           #
@@ -259,14 +249,8 @@ norm:
 leaks: $(PROJECT)
 	@valgrind --leak-check=full --show-leak-kinds=all ./$(PROJECT) || true
 
-leaks_bonus: $(P_BONUS)
-	@valgrind --leak-check=full --show-leak-kinds=all ./$(PROJECT) || true
-
 # Include dependency files if they exist
 #
 -include $(wildcard $(DEPS))
 -include $(wildcard $(B_DEPS))
 
-# Dinamic version of .PHONY
-#
-#.PHONY: $(filter-out $(NAME) $(PROJECT) bonus_$(PROJECT), $(MAKECMDGOALS))
